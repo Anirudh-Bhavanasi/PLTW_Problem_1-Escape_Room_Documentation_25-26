@@ -50,6 +50,7 @@ public class EscapeRoom
     "jump", "jr", "jumpleft", "jl", "jumpup", "ju", "jumpdown", "jd",
     "pickup", "p", "quit", "q", "replay", "help", "?"};
   
+
     // set up game
     boolean play = true;
     while (play)
@@ -60,7 +61,24 @@ public class EscapeRoom
       String input = UserInput.getValidInput(validCommands);
 
 	    /* process user commands*/
-    
+      if (input.equals("right") || input.equals("r")) {
+        int penalty = game.movePlayer(m, 0);
+        score += penalty;
+      } else if (input.equals("left") || input.equals("l")) {
+        int penalty = game.movePlayer(-m, 0);
+        score += penalty;
+      } else if (input.equals("up") || input.equals("u")) {
+        int penalty = game.movePlayer(0, -m);
+        score += penalty;
+      } else if (input.equals("down") || input.equals("d")) {
+        int penalty = game.movePlayer(0, m);
+        score += penalty;
+      } else if (input.equals("quit") || input.equals("q")) {
+        play = false;
+      }
+      // ...add more commands here later...
+      System.out.println("Current score: " + score);
+
       /* uncomment when user quits */
       // play = false;
     }
@@ -71,5 +89,6 @@ public class EscapeRoom
     System.out.println("steps=" + game.getSteps());
   }
 }
+
 
         
