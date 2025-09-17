@@ -43,7 +43,10 @@ public class EscapeRoom
     int px = 0;
     int py = 0; 
     
+    // other variables
     int score = 0;
+    
+
 
     Scanner in = new Scanner(System.in);
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
@@ -60,7 +63,73 @@ public class EscapeRoom
       String input = UserInput.getValidInput(validCommands);
 
 	    /* process user commands*/
-    
+      if (input.equals("right") || input.equals("r"))
+      {
+        int penalty = game.movePlayer(m,0);
+        score += penalty;
+      }
+      else if (input.equals("left") || input.equals("l"))
+      {
+        int penalty = game.movePlayer(-m,0);
+        score += penalty;
+      }
+      else if (input.equals("up") || input.equals("u"))
+      {
+        int penalty = game.movePlayer(0, -m);
+        score += penalty;
+      }
+      else if (input.equals("down") || input.equals("d"))
+      {
+        int penalty = game.movePlayer(0, m);
+        score += penalty;
+      }
+      /* 
+      else if (input.equals("jump") || input.equals("jr"))
+      {
+        px = 2*m;
+        py = 0;
+      }
+      else if (input.equals("jumpleft") || input.equals("jl"))
+      {
+        px = -2*m;
+        py = 0;
+      }
+      else if (input.equals("jumpup") || input.equals("ju"))
+      {
+        px = 0;
+        py = -2*m;
+      }
+      else if (input.equals("jumpdown") || input.equals("jd"))
+      {
+        px = 0;
+        py = 2*m;
+      }
+      */
+      else if (input.equals("pickup") || input.equals("p"))
+      {
+        game.pickupPrize();
+        continue; // skip the move
+      }
+        
+      else if (input.equals("help") || input.equals("?"))
+      {
+        System.out.println("Valid commands are:");
+        System.out.println("right(r), left(l), up(u), down(d),");
+        System.out.println("jump(jr, jl, ju, jd), pickup(p),");
+        System.out.println("replay, quit(q), help(?)");
+        continue; // skip the move
+      }
+      else if (input.equals("replay"))
+      {
+        score += game.replay();
+        continue; // skip the move
+      }
+      else if (input.equals("quit") || input.equals("q"))
+      {
+        System.out.println("You quit the game.");
+        play = false;
+        continue; // skip the move
+      }
       /* uncomment when user quits */
       // play = false;
     }

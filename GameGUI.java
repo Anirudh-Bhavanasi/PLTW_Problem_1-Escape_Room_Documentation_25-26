@@ -1,17 +1,14 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Image;
 import java.awt.Point;
-
+import java.awt.Rectangle;
+import java.io.File;
+import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-
-import java.io.File;
-import javax.imageio.ImageIO;
-
-import java.util.Random;
 
 /**
  * A Game board on which to place and move players.
@@ -261,7 +258,7 @@ public class GameGUI extends JComponent
   /**
    * Pickup a prize and score points. If no prize is in that location, this results in a penalty.
    * <P>
-   * @return positive score if a location had a prize to be picked up, otherwise a negative penalty
+   * @ruturn positive score if a location had a prize to be picked up, otherwise a negative penalty
    */
   public int pickupPrize()
   {
