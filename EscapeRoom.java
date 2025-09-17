@@ -48,9 +48,8 @@ public class EscapeRoom
     Scanner in = new Scanner(System.in);
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
     "jump", "jr", "jumpleft", "jl", "jumpup", "ju", "jumpdown", "jd",
-    "pickup", "p", "quit", "q", "replay", "help", "?"};
+    "pickup", "p", "springtrap", "st", "quit", "q", "replay", "end", "help", "?"};
   
-
     // set up game
     boolean play = true;
     while (play)
@@ -62,25 +61,110 @@ public class EscapeRoom
 
 	    /* process user commands*/
       if (input.equals("right") || input.equals("r")) {
-        int penalty = game.movePlayer(m, 0);
-        score += penalty;
-      } else if (input.equals("left") || input.equals("l")) {
-        int penalty = game.movePlayer(-m, 0);
-        score += penalty;
-      } else if (input.equals("up") || input.equals("u")) {
-        int penalty = game.movePlayer(0, -m);
-        score += penalty;
-      } else if (input.equals("down") || input.equals("d")) {
-        int penalty = game.movePlayer(0, m);
-        score += penalty;
-      } else if (input.equals("quit") || input.equals("q")) {
+        score += game.movePlayer(m, 0);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("left") || input.equals("l")) {
+        score += game.movePlayer(-m, 0);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("up") || input.equals("u")) {
+        score += game.movePlayer(0, -m);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("down") || input.equals("d")) {
+        score += game.movePlayer(0, m);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("jump") || input.equals("jr")) {
+        // Jump right - move 2 spaces right
+        score += game.movePlayer(2*m, 0);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("jumpleft") || input.equals("jl")) {
+        // Jump left - move 2 spaces left
+        score += game.movePlayer(-2*m, 0);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("jumpup") || input.equals("ju")) {
+        // Jump up - move 2 spaces up
+        score += game.movePlayer(0, -2*m);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("jumpdown") || input.equals("jd")) {
+        // Jump down - move 2 spaces down
+        score += game.movePlayer(0, 2*m);
+        // Check for trap after movement
+        if (game.isTrap(0, 0)) {
+          System.out.println("You stepped on a trap! Spring it to get points!");
+        }
+      }
+      else if (input.equals("pickup") || input.equals("p")) {
+        score += game.pickupPrize();
+      }
+      else if (input.equals("springtrap") || input.equals("st")) {
+        // Spring trap at current location
+        score += game.springTrap(0, 0);
+      }
+      else if (input.equals("help") || input.equals("?")) {
+        System.out.println("\n=== ESCAPE ROOM COMMANDS ===");
+        System.out.println("Movement:");
+        System.out.println("  right, r     - Move right one space");
+        System.out.println("  left, l      - Move left one space");
+        System.out.println("  up, u        - Move up one space");
+        System.out.println("  down, d      - Move down one space");
+        System.out.println("Jumping:");
+        System.out.println("  jump, jr     - Jump right (skip one space)");
+        System.out.println("  jumpleft, jl - Jump left (skip one space)");
+        System.out.println("  jumpup, ju   - Jump up (skip one space)");
+        System.out.println("  jumpdown, jd - Jump down (skip one space)");
+        System.out.println("Actions:");
+        System.out.println("  pickup, p    - Pick up prize at current location");
+        System.out.println("  springtrap, st - Spring trap at current location");
+        System.out.println("Game Control:");
+        System.out.println("  end          - End game and check if you reached the far right");
+        System.out.println("  replay       - Reset board and show step count");
+        System.out.println("  quit, q      - Quit the game");
+        System.out.println("  help, ?      - Show this help message");
+        System.out.println("===============================\n");
+      }
+      else if (input.equals("end")) {
+        score += game.endGame();
         play = false;
       }
-      // ...add more commands here later...
+      else if (input.equals("replay")) {
+        System.out.println("Steps taken: " + game.getSteps());
+        score += game.replay();
+      }
+      else if (input.equals("quit") || input.equals("q")) {
+        play = false;
+      }
+      
+      // Display current score
       System.out.println("Current score: " + score);
-
-      /* uncomment when user quits */
-      // play = false;
+      System.out.println("Steps taken: " + game.getSteps());
+      System.out.println();
     }
 
     score += game.endGame();
@@ -89,6 +173,5 @@ public class EscapeRoom
     System.out.println("steps=" + game.getSteps());
   }
 }
-
 
         
