@@ -1,17 +1,14 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Image;
 import java.awt.Point;
-
+import java.awt.Rectangle;
+import java.io.File;
+import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-
-import java.io.File;
-import javax.imageio.ImageIO;
-
-import java.util.Random;
 
 /**
  * A Game board on which to place and move players.
@@ -51,6 +48,7 @@ public class GameGUI extends JComponent
   private Rectangle[] prizes;
   private int totalTraps;
   private Rectangle[] traps;
+  private boolean[] trapsRevealed; // Track which traps have been revealed
 
   // scores, sometimes awarded as (negative) penalties
   private int prizeVal = 10;
@@ -58,6 +56,9 @@ public class GameGUI extends JComponent
   private int endVal = 10;
   private int offGridVal = 5; // penalty only
   private int hitWallVal = 5;  // penalty only
+  private int detectBonus = 3; // bonus for detecting traps
+  private int detectPenalty = 2; // penalty for detecting nothing
+  private int stepOnTrapPenalty = 15; // penalty for stepping on trap
 
   // game frame
   private JFrame frame;
@@ -111,6 +112,7 @@ public class GameGUI extends JComponent
   public void createBoard()
   {
     traps = new Rectangle[totalTraps];
+    trapsRevealed = new boolean[totalTraps];
     createTraps();
     
     prizes = new Rectangle[totalPrizes];
@@ -235,27 +237,34 @@ public class GameGUI extends JComponent
    */
   public int springTrap(int newx, int newy)
   {
-    double px = playerLoc.getX() + newx;
-    double py = playerLoc.getY() + newy;
-
-    // check all traps, some of which may be already sprung
-    for (Rectangle r: traps)
-    {
-      // DEBUG: System.out.println("trapx:" + r.getX() + " trapy:" + r.getY() + "\npx: " + px + " py:" + py);
-      if (r.contains(px, py))
-      {
-        // zero size traps indicate it has been sprung, cannot spring again, so ignore
-        if (r.getWidth() > 0)
-        {
+    double px = playerLoc.getX();
+    double py = playerLoc.getY();
+    int trapsSprung = 0;
+    
+    // Check all 8 adjacent tiles (including diagonals)
+    double[] dx = {-1, 0, 1, -1, 1, -1, 0, 1};
+    double[] dy = {-1, -1, -1, 0, 0, 1, 1, 1};
+    
+    for (int i = 0; i < dx.length; i++) {
+      double checkX = px + dx[i] * SPACE_SIZE;
+      double checkY = py + dy[i] * SPACE_SIZE;
+      
+      for (Rectangle r: traps) {
+        if (r.getWidth() > 0 && r.contains(checkX, checkY)) {
+          System.out.println("TRAP SPRUNG at (" + (int)checkX + ", " + (int)checkY + ")!");
           r.setSize(0,0);
-          System.out.println("TRAP IS SPRUNG!");
-          return trapVal;
+          trapsSprung++;
         }
       }
     }
-    // no trap here, penalty
-    System.out.println("THERE IS NO TRAP HERE TO SPRING");
-    return -trapVal;
+    
+    if (trapsSprung > 0) {
+      repaint();
+      return trapVal * trapsSprung;
+    } else {
+      System.out.println("THERE ARE NO TRAPS NEARBY TO SPRING");
+      return -trapVal;
+    }
   }
 
   /**
@@ -282,6 +291,56 @@ public class GameGUI extends JComponent
     }
     System.out.println("OOPS, NO PRIZE HERE");
     return -prizeVal;  
+  }
+
+  /**
+   * Detect traps in adjacent tiles. Reveals traps and gives bonus/penalty based on findings.
+   * <P>
+   * @return positive score if traps are found, negative penalty if no traps detected
+   */
+  public int detectTraps()
+  {
+    double px = playerLoc.getX();
+    double py = playerLoc.getY();
+    int trapsFound = 0;
+    
+    // Check all 8 adjacent positions (including diagonals)
+    int[] dx = {-60, 0, 60, -60, 60, -60, 0, 60}; // x offsets
+    int[] dy = {-60, -60, -60, 0, 0, 60, 60, 60}; // y offsets
+    
+    for (int i = 0; i < dx.length; i++) {
+      double checkX = px + dx[i];
+      double checkY = py + dy[i];
+      
+      for (int j = 0; j < traps.length; j++) {
+        Rectangle t = traps[j];
+        if (t.getWidth() > 0 && t.contains(checkX, checkY) && !trapsRevealed[j]) {
+          // Reveal the trap by marking it as revealed
+          trapsRevealed[j] = true;
+          trapsFound++;
+          System.out.println("TRAP DETECTED at (" + (int)checkX + ", " + (int)checkY + ")!");
+        }
+      }
+    }
+    
+    if (trapsFound > 0) {
+      System.out.println("Found " + trapsFound + " trap(s)! Bonus points awarded!");
+      repaint(); // Redraw to show revealed traps
+      return detectBonus * trapsFound;
+    } else {
+      System.out.println("No traps detected nearby. Small penalty applied.");
+      return -detectPenalty;
+    }
+  }
+
+  /**
+   * Penalty for stepping on a trap.
+   * <P>
+   * @return negative penalty score for stepping on a trap
+   */
+  public int stepOnTrap()
+  {
+    return -stepOnTrapPenalty;
   }
 
   /**
@@ -346,6 +405,10 @@ public class GameGUI extends JComponent
       p.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
     for (Rectangle t: traps)
       t.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
+    
+    // reset revealed traps
+    for (int i = 0; i < trapsRevealed.length; i++)
+      trapsRevealed[i] = false;
 
     // move player to start of board
     x = START_LOC_X;
@@ -381,11 +444,18 @@ public class GameGUI extends JComponent
     // draw grid
     g.drawImage(bgImage, 0, 0, null);
 
-    // add (invisible) traps
-    for (Rectangle t : traps)
+    // add traps (invisible or revealed)
+    for (int i = 0; i < traps.length; i++)
     {
-      g2.setPaint(Color.WHITE); 
-      g2.fill(t);
+      Rectangle t = traps[i];
+      if (t.getWidth() > 0) { // Only draw active traps
+        if (trapsRevealed[i]) {
+          g2.setPaint(Color.RED); // Revealed traps are red
+        } else {
+          g2.setPaint(Color.WHITE); // Hidden traps are white (invisible)
+        }
+        g2.fill(t);
+      }
     }
 
     // add prizes
