@@ -41,7 +41,7 @@ public class EscapeRoom
     int score = 0;
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
     "jump", "jr", "jumpleft", "jl", "jumpup", "ju", "jumpdown", "jd",
-    "pickup", "p", "springtrap", "st", "detect", "dt", "quit", "q", "replay", "end", "help", "?"};
+    "pickup", "p", "springtrap", "st", "detect", "dt", "quit", "q", "replay", "help", "?"};
     
     String[] jumpDirections = { "right", "left", "up", "down", "r", "l", "u", "d"};
   
@@ -177,21 +177,35 @@ public class EscapeRoom
         System.out.println("  springtrap, st - Spring traps in adjacent tiles (disarms nearby traps)");
         System.out.println("  detect, dt   - Detect traps in adjacent tiles (bonus if found, penalty if none)");
         System.out.println("Game Control:");
-        System.out.println("  end          - End game and check if you reached the far right");
+        System.out.println("  quit, q      - End game and check win/lose conditions");
         System.out.println("  replay       - Reset board and show step count");
-        System.out.println("  quit, q      - Quit the game");
         System.out.println("  help, ?      - Show this help message");
         System.out.println("===============================\n");
-      }
-      else if (input.equals("end")) {
-        score += game.endGame();
-        play = false;
       }
       else if (input.equals("replay")) {
         System.out.println("Steps taken: " + game.getSteps());
         score += game.replay();
       }
       else if (input.equals("quit") || input.equals("q")) {
+        // End game and check win/lose conditions
+        System.out.println("\n=== GAME OVER ===");
+        System.out.println("Final score: " + score);
+        
+        // Check if player reached the rightmost side
+        boolean reachedEnd = game.playerAtEnd() > 0;
+        
+        if (reachedEnd && score > 0) {
+          System.out.println(" CONGRATULATIONS! YOU WIN! ");
+          System.out.println("You successfully reached the end with a good score!");
+        } else if (reachedEnd && score <= 0) {
+          System.out.println(" YOU LOSE! ");
+          System.out.println("You reached the end but with a bad score!");
+        } else {
+          System.out.println(" YOU LOSE! ");
+          System.out.println("You didn't reach the rightmost side of the board!");
+        }
+        
+        System.out.println("Thanks for playing!");
         play = false;
       }
       
@@ -201,10 +215,7 @@ public class EscapeRoom
       System.out.println();
     }
 
-    score += game.endGame();
-
-    System.out.println("score=" + score);
-    System.out.println("steps=" + game.getSteps());
+    // Game ending logic is now handled in the quit command
   }
 }
 

@@ -554,7 +554,7 @@ public class GameGUI extends JComponent
    * Checks if player as at the far right of the board 
    * @return positive score for reaching the far right wall, penalty otherwise
    */
-  private int playerAtEnd() 
+  public int playerAtEnd() 
   {
     int score;
 
