@@ -5,7 +5,6 @@
 * 10/10/2019
 * Copyright(c) 2019 PLTW to present. All rights reserved
 */
-import java.util.Scanner;
 
 /**
  * Create an escape room game where the player must navigate
@@ -39,16 +38,12 @@ public class EscapeRoom
 
     // size of move
     int m = 60; 
-    // individual player moves
-    int px = 0;
-    int py = 0; 
-    
     int score = 0;
-
-    Scanner in = new Scanner(System.in);
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
     "jump", "jr", "jumpleft", "jl", "jumpup", "ju", "jumpdown", "jd",
-    "pickup", "p", "springtrap", "st", "quit", "q", "replay", "end", "help", "?"};
+    "pickup", "p", "springtrap", "st", "detect", "dt", "quit", "q", "replay", "help", "?"};
+    
+    String[] jumpDirections = { "right", "left", "up", "down", "r", "l", "u", "d"};
   
     // set up game
     boolean play = true;
@@ -62,62 +57,95 @@ public class EscapeRoom
 	    /* process user commands*/
       if (input.equals("right") || input.equals("r")) {
         score += game.movePlayer(m, 0);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("left") || input.equals("l")) {
         score += game.movePlayer(-m, 0);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("up") || input.equals("u")) {
         score += game.movePlayer(0, -m);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("down") || input.equals("d")) {
         score += game.movePlayer(0, m);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
-      else if (input.equals("jump") || input.equals("jr")) {
-        // Jump right - move 2 spaces right
-        score += game.movePlayer(2*m, 0);
-        // Check for trap after movement
+      else if (input.equals("jump")) {
+        // Prompt user for jump direction
+        System.out.print("Jump in which direction? (right/left/up/down or r/l/u/d): ");
+        String jumpDir = UserInput.getValidInput(jumpDirections);
+        
+        // Execute jump in specified direction
+        if (jumpDir.equals("right") || jumpDir.equals("r")) {
+          score += game.movePlayer(2*m, 0);
+        }
+        else if (jumpDir.equals("left") || jumpDir.equals("l")) {
+          score += game.movePlayer(-2*m, 0);
+        }
+        else if (jumpDir.equals("up") || jumpDir.equals("u")) {
+          score += game.movePlayer(0, -2*m);
+        }
+        else if (jumpDir.equals("down") || jumpDir.equals("d")) {
+          score += game.movePlayer(0, 2*m);
+        }
+        
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
+        }
+      }
+      else if (input.equals("jr")) {
+        // Jump right - move 2 spaces right (shortcut)
+        score += game.movePlayer(2*m, 0);
+        // Check for trap only if player lands on trap tile
+        if (game.isTrap(0, 0)) {
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("jumpleft") || input.equals("jl")) {
         // Jump left - move 2 spaces left
         score += game.movePlayer(-2*m, 0);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("jumpup") || input.equals("ju")) {
         // Jump up - move 2 spaces up
         score += game.movePlayer(0, -2*m);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("jumpdown") || input.equals("jd")) {
         // Jump down - move 2 spaces down
         score += game.movePlayer(0, 2*m);
-        // Check for trap after movement
+        // Check for trap only if player lands on trap tile
         if (game.isTrap(0, 0)) {
-          System.out.println("You stepped on a trap! Spring it to get points!");
+          System.out.println("You landed on a trap! You lose points!");
+          score += game.stepOnTrap();
         }
       }
       else if (input.equals("pickup") || input.equals("p")) {
@@ -127,6 +155,10 @@ public class EscapeRoom
         // Spring trap at current location
         score += game.springTrap(0, 0);
       }
+      else if (input.equals("detect") || input.equals("dt")) {
+        // Detect traps in adjacent tiles
+        score += game.detectTraps();
+      }
       else if (input.equals("help") || input.equals("?")) {
         System.out.println("\n=== ESCAPE ROOM COMMANDS ===");
         System.out.println("Movement:");
@@ -135,29 +167,45 @@ public class EscapeRoom
         System.out.println("  up, u        - Move up one space");
         System.out.println("  down, d      - Move down one space");
         System.out.println("Jumping:");
-        System.out.println("  jump, jr     - Jump right (skip one space)");
+        System.out.println("  jump         - Jump in a direction (you'll be prompted for direction)");
+        System.out.println("  jr           - Jump right (skip one space)");
         System.out.println("  jumpleft, jl - Jump left (skip one space)");
         System.out.println("  jumpup, ju   - Jump up (skip one space)");
         System.out.println("  jumpdown, jd - Jump down (skip one space)");
         System.out.println("Actions:");
         System.out.println("  pickup, p    - Pick up prize at current location");
-        System.out.println("  springtrap, st - Spring trap at current location");
+        System.out.println("  springtrap, st - Spring traps in adjacent tiles (disarms nearby traps)");
+        System.out.println("  detect, dt   - Detect traps in adjacent tiles (bonus if found, penalty if none)");
         System.out.println("Game Control:");
-        System.out.println("  end          - End game and check if you reached the far right");
+        System.out.println("  quit, q      - End game and check win/lose conditions");
         System.out.println("  replay       - Reset board and show step count");
-        System.out.println("  quit, q      - Quit the game");
         System.out.println("  help, ?      - Show this help message");
         System.out.println("===============================\n");
-      }
-      else if (input.equals("end")) {
-        score += game.endGame();
-        play = false;
       }
       else if (input.equals("replay")) {
         System.out.println("Steps taken: " + game.getSteps());
         score += game.replay();
       }
       else if (input.equals("quit") || input.equals("q")) {
+        // End game and check win/lose conditions
+        System.out.println("\n=== GAME OVER ===");
+        System.out.println("Final score: " + score);
+        
+        // Check if player reached the rightmost side
+        boolean reachedEnd = game.playerAtEnd() > 0;
+        
+        if (reachedEnd && score > 0) {
+          System.out.println(" CONGRATULATIONS! YOU WIN! ");
+          System.out.println("You successfully reached the end with a good score!");
+        } else if (reachedEnd && score <= 0) {
+          System.out.println(" YOU LOSE! ");
+          System.out.println("You reached the end but with a bad score!");
+        } else {
+          System.out.println(" YOU LOSE! ");
+          System.out.println("You didn't reach the rightmost side of the board!");
+        }
+        
+        System.out.println("Thanks for playing!");
         play = false;
       }
       
@@ -167,10 +215,7 @@ public class EscapeRoom
       System.out.println();
     }
 
-    score += game.endGame();
-
-    System.out.println("score=" + score);
-    System.out.println("steps=" + game.getSteps());
+    // Game ending logic is now handled in the quit command
   }
 }
 
